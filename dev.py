@@ -1,5 +1,7 @@
 from components.asset import Asset
+from components.ui.data_card import DataCard
 import streamlit as st
 
-st.write(Asset("MSFT").get_data())
-st.dataframe(Asset("MSFT").returns_table("C-C"))
+st.set_page_config(layout="wide")
+
+DataCard("MSFT").render("C-C")

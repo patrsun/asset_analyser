@@ -11,7 +11,7 @@ class DataCard():
         self.asset = Asset(ticker)
     
     def render(self, return_type: Literal["C-C", "H-L", "O-C"]):
-        asset = self.stock
+        asset = self.asset
 
         title = ""
         match return_type:
@@ -29,30 +29,11 @@ class DataCard():
 
             col1, col2 = st.columns(2, border=True)
             with col1:
-                # bounds for the bin range
-                bound = st.slider(
-                    "Select bin range",
-                    min_value=1,
-                    max_value=10,
-                    value=2,
-                    format="%.0f%%",
-                    key=f"{return_type} bound"
-                )
-
-                # step for bins
-                step = st.slider(
-                    "Select step size",
-                    min_value=0.5,
-                    max_value=1.0,
-                    value=0.5,
-                    format="%.2f%%",
-                    key=f"{return_type} step"
-                )
-                returns_table = asset.returns(bound, step, return_type)
+                returns_table = asset.returns_table(return_type)
                 prob_table = asset.prob_table(return_type)
                 returns_chart = alt.Chart(returns_table).mark_bar().encode(
                     x=alt.X("Range:N", title="Range", sort=returns_table.index),
-                    y=alt.Y("Frequency:Q", title="Frequency")
+                    y=alt.Y("Count:Q", title="Frequency")
                 )
                 var_table = asset.var_table(return_type)
             

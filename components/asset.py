@@ -99,7 +99,7 @@ class Asset():
         """
         Table of upper bounds and lower bounds 1-3 standard deviations
         """
-        returns = self.filter_df[return_type]
+        returns = self.data[return_type]
         mean = returns.mean()
         std = returns.std()
         total = returns.count()
