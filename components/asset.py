@@ -23,12 +23,12 @@ class Asset():
                 - 1mo = monthly
                 - 3mo = quarterly
         """
-        self.data = yf.Ticker(ticker).history(period="max", interval=interval)
+        self.data = yf.Ticker(ticker).history(period="max", interval=interval, auto_adjust=False)
         # make Dates into their own column
         self.data.reset_index(inplace=True) 
         
         # calculate returns
-        self.data["C-C"] = self.data["Close"].pct_change()
+        self.data["C-C"] = self.data["Adj Close"].pct_change()
         self.data["H-L"] = (self.data["High"] - self.data["Low"])/self.data["Low"]
         self.data["O-C"] = (self.data["Close"] - self.data["Open"])/self.data["Open"]
 
