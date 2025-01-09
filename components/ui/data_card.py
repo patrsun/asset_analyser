@@ -9,7 +9,7 @@ class DataCard():
     """
     def __init__(self, asset: Asset):
         self.asset = asset
-    
+   
     def render(self, return_type: Literal["C-C", "H-L", "O-C"]):
         asset = self.asset
 
@@ -23,7 +23,7 @@ class DataCard():
                 color = '#EF476F'
             case "O-C":
                 title = "Open to Close Distribution of Returns"
-                color = '#06D6A0'
+                color = '#FFD166'
 
 
         container = st.container(border=False)
