@@ -25,19 +25,20 @@ class DataCard():
 
         container = st.container(border=False)
         with container:
+            returns_table = asset.returns_table(return_type)
+            prob_table = asset.prob_table(return_type)
+            returns_chart = alt.Chart(returns_table).mark_bar().encode(
+                x=alt.X("Range:N", title="Range", sort=returns_table.index),
+                y=alt.Y("Count:Q", title="Frequency")
+            )
+            var_table = asset.var_table(return_type)
+
             st.subheader(title)
 
             col1, col2 = st.columns(2, border=True)
             with col1:
-                returns_table = asset.returns_table(return_type)
-                prob_table = asset.prob_table(return_type)
-                returns_chart = alt.Chart(returns_table).mark_bar().encode(
-                    x=alt.X("Range:N", title="Range", sort=returns_table.index),
-                    y=alt.Y("Count:Q", title="Frequency")
-                )
-                var_table = asset.var_table(return_type)
-            
                 st.dataframe(returns_table, use_container_width=True)
+
 
             with col2:
                 st.altair_chart(returns_chart, use_container_width=True)

@@ -124,6 +124,32 @@ class Asset():
         
         return table
 
+    def summary_stats(self, return_type: Literal["C-C", "H-L", "O-C"]):
+        """
+        Summary table of descriptive statistics
+        """
+        returns = self.data[return_type]
+        summary = pd.DataFrame(
+            index=[
+                "mean", "median", "mode", "std_dev", 
+                "range", "max", "min", "count"
+            ], 
+            columns=["values"]
+        )
+        summary.loc["mean", "values"] = returns.mean()
+        summary.loc["median", "values"] = returns.median()
+        summary.loc["mode", "values"] = returns.mode().iat[0]
+        summary.loc["std_dev", "values"] = returns.std()
+        max = returns.max()
+        min = returns.min()
+        summary.loc["range", "values"] = max - min
+        summary.loc["max", "values"] = max
+        summary.loc["min", "values"] = min
+        summary.loc["count", "values"] = returns.count()
+
+        return summary
+
+
     @staticmethod
     def __gen_label(bin):
         """
