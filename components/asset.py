@@ -23,7 +23,9 @@ class Asset():
                 - 1mo = monthly
                 - 3mo = quarterly
         """
-        self.data = yf.Ticker(ticker).history(period="max", interval=interval, auto_adjust=False)
+        asset = yf.Ticker(ticker) 
+        self.name = asset.info["shortName"]
+        self.data = asset.history(period="max", interval=interval, auto_adjust=False)
         # make Dates into their own column
         self.data.reset_index(inplace=True) 
         

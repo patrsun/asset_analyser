@@ -4,5 +4,5 @@ import streamlit as st
 
 st.set_page_config(layout="wide")
 
-asset = Asset("MSFT", interval="3mo")
+asset = Asset("AAPL", interval="1d")
 DataCard(asset).render("C-C")

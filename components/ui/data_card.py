@@ -29,7 +29,12 @@ class DataCard():
             prob_table = asset.prob_table(return_type)
             returns_chart = alt.Chart(returns_table).mark_bar().encode(
                 x=alt.X("Range:N", title="Range", sort=returns_table.index),
-                y=alt.Y("Count:Q", title="Frequency")
+                y=alt.Y("Count:Q", title="Frequency"),
+            ).properties(
+                title=asset.name,
+                height=400
+            ).configure_title(
+                anchor='middle'
             )
             var_table = asset.var_table(return_type)
             summary_table = asset.summary_stats(return_type)
