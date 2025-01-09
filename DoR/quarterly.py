@@ -4,7 +4,6 @@ import streamlit as st
 
 ticker = st.session_state["ticker"]
 
-@st.cache_data
 def render_page():
     asset = Asset(ticker, interval="3mo")
     DataCard(asset).render("C-C")
