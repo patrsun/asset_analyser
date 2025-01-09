@@ -7,8 +7,8 @@ class DataCard():
     """
     UI component class to display data analysis graphs and tables
     """
-    def __init__(self, ticker: str):
-        self.asset = Asset(ticker)
+    def __init__(self, asset: Asset):
+        self.asset = asset
     
     def render(self, return_type: Literal["C-C", "H-L", "O-C"]):
         asset = self.asset
