@@ -129,23 +129,17 @@ class Asset():
         Summary table of descriptive statistics
         """
         returns = self.data[return_type]
-        summary = pd.DataFrame(
-            index=[
-                "mean", "median", "mode", "std_dev", 
-                "range", "max", "min", "count"
-            ], 
-            columns=["values"]
-        )
-        summary.loc["mean", "values"] = returns.mean()
-        summary.loc["median", "values"] = returns.median()
-        summary.loc["mode", "values"] = returns.mode().iat[0]
-        summary.loc["std_dev", "values"] = returns.std()
+        summary = pd.DataFrame()
+        summary.loc["mean", "values"] = self.__to_percent(returns.mean())
+        summary.loc["median", "values"] = self.__to_percent(returns.median())
+        summary.loc["mode", "values"] = self.__to_percent(returns.mode().iat[0])
+        summary.loc["standard deviation", "values"] = self.__to_percent(returns.std())
         max = returns.max()
         min = returns.min()
-        summary.loc["range", "values"] = max - min
-        summary.loc["max", "values"] = max
-        summary.loc["min", "values"] = min
-        summary.loc["count", "values"] = returns.count()
+        summary.loc["range", "values"] = self.__to_percent(max - min)
+        summary.loc["max", "values"] = self.__to_percent(max)
+        summary.loc["min", "values"] = self.__to_percent(min)
+        summary.loc["count", "values"] = str(returns.count())
 
         return summary
 

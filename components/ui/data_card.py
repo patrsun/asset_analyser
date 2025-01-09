@@ -32,13 +32,14 @@ class DataCard():
                 y=alt.Y("Count:Q", title="Frequency")
             )
             var_table = asset.var_table(return_type)
+            summary_table = asset.summary_stats(return_type)
 
             st.subheader(title)
 
             col1, col2 = st.columns(2, border=True)
             with col1:
                 st.dataframe(returns_table, use_container_width=True)
-
+                st.dataframe(summary_table, use_container_width=True)
 
             with col2:
                 st.altair_chart(returns_chart, use_container_width=True)
