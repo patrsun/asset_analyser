@@ -16,11 +16,14 @@ class DataCard():
         title = ""
         match return_type:
             case "C-C":
-                title = "Close to Close Returns"
+                title = "Close to Close (Adj) Distribution of Returns"
+                color = '#5386E4'
             case "H-L":
-                title = "High to Low Returns"
+                title = "High to Low Distribution of Returns"
+                color = '#EF476F'
             case "O-C":
-                title = "Open to Close Returns"
+                title = "Open to Close Distribution of Returns"
+                color = '#06D6A0'
 
 
         container = st.container(border=False)
@@ -35,7 +38,10 @@ class DataCard():
                 height=400
             ).configure_title(
                 anchor='middle'
+            ).configure_bar(
+                color=color
             )
+
             var_table = asset.var_table(return_type)
             summary_table = asset.summary_stats(return_type)
 

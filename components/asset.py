@@ -138,9 +138,9 @@ class Asset():
         summary.loc["standard deviation", "values"] = self.__to_percent(returns.std())
         max = returns.max()
         min = returns.min()
-        summary.loc["range", "values"] = self.__to_percent(max - min)
         summary.loc["max", "values"] = self.__to_percent(max)
         summary.loc["min", "values"] = self.__to_percent(min)
+        summary.loc["range", "values"] = self.__to_percent(max - min)
         summary.loc["count", "values"] = str(returns.count())
 
         return summary
