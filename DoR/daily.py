@@ -4,13 +4,14 @@ import streamlit as st
 
 ticker = st.session_state["ticker"]
 
-def render_page():
+@st.cache_data
+def render_page(ticker):
     asset = Asset(ticker, interval="1d")
     DataCard(asset).render("C-C")
     DataCard(asset).render("H-L")
     DataCard(asset).render("O-C")
 
 if ticker != "":
-    render_page()
+    render_page(ticker)
 else:
     st.write("No data to display")
