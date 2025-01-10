@@ -10,7 +10,7 @@ quarterly = st.Page("DoR/quarterly.py", title="Quarterly DoR")
 
 pg = st.navigation(
     {
-        "Historial Volatility": [daily, monthly, quarterly]
+        "Historical Volatility": [daily, monthly, quarterly]
     }
 )
 
