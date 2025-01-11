@@ -33,10 +33,14 @@ class Asset():
         self.data["C-C"] = self.data["Adj Close"].pct_change()
         self.data["H-L"] = (self.data["High"] - self.data["Low"])/self.data["Low"]
         self.data["O-C"] = (self.data["Close"] - self.data["Open"])/self.data["Open"]
+        
+        # remove all invalid rows of data
+        invalid_rows = self.data[np.isinf(self.data["O-C"])].index
+        
+        if (not invalid_rows.empty):
+            max_invalid = invalid_rows.max()
+            self.data.drop(self.data.index[:max_invalid+1], inplace=True)
 
-    def get_data(self):
-        return self.data
-    
     def returns_table(self, return_type:Literal["C-C", "H-L", "O-C"]):
         """
         Returns table of values for the specificed return type
