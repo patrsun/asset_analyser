@@ -1,20 +1,27 @@
+from typing import Literal
+from components.asset import Asset
 import streamlit as st
 import altair as alt
-from components.asset import Asset
-from typing import Literal
 
-class DataCard():
-    """
-    UI component class to display data analysis graphs and tables
-    """
-    def __init__(self, asset: Asset):
-        self.asset = asset
-   
-    def render(self, return_type: Literal["C-C", "H-L", "O-C"]):
-        asset = self.asset
-        start_date = asset.start_date.strftime("%b %Y")
-        end_date = asset.end_date.strftime("%b %Y")
+class ReturnsPage():
+    def __init__(self, ticker, interval="1d"):
+        self.ticker = ticker
+        self.interval = interval
+    
+    @st.cache_data
+    def render(self):
+        if self.ticker != "":
+            try:
+                asset = Asset(self.ticker, interval=self.interval)
+                self.__card(asset, "C-C")
+                self.__card(asset, "C-C")
+                self.__card(asset, "C-C")
+            except: 
+                st.write("Invalid ticker symbol")
+        else:
+            st.write("No data to display")
 
+    def __card(self, asset, return_type: Literal["C-C", "H-L", "O-C"]):
         title = ""
         match return_type:
             case "C-C":
@@ -36,7 +43,7 @@ class DataCard():
                 x=alt.X("Range:N", title="Range", sort=returns_table.index),
                 y=alt.Y("Count:Q", title="Frequency"),
             ).properties(
-                title=f"{asset.name} ({start_date} - {end_date})",
+                title=asset.name,
                 height=400
             ).configure_title(
                 anchor='middle'

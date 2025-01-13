@@ -40,6 +40,10 @@ class Asset():
         if (not invalid_rows.empty):
             max_invalid = invalid_rows.max()
             self.data.drop(self.data.index[:max_invalid+1], inplace=True)
+        
+        # get start and end date of data
+        self.start_date = self.data["Date"].min()
+        self.end_date = self.data["Date"].max()
 
     def returns_table(self, return_type:Literal["C-C", "H-L", "O-C"]):
         """

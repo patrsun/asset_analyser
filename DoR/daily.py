@@ -1,7 +1,6 @@
 from components.asset import Asset
 from components.ui.data_card import DataCard
 import streamlit as st
-import numpy as np
 
 ticker = st.session_state["ticker"]
 
