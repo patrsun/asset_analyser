@@ -10,7 +10,7 @@ class Asset():
     Contains methods for calculating:
     - Distribution of Returns
     """
-    def __init__(self, ticker: str, interval: Literal["1d", "1mo", "3mo"]="1d"):
+    def __init__(self, ticker: str, interval: Literal["1d", "5d", "1mo", "3mo"]="1d"):
         """
         Parameters 
         ----------
