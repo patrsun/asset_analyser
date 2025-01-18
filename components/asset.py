@@ -141,9 +141,11 @@ class Asset():
         returns = self.data[return_type]
         summary = pd.DataFrame()
         summary.loc["mean", "values"] = self.__to_percent(returns.mean())
-        summary.loc["median", "values"] = self.__to_percent(returns.median())
-        summary.loc["mode", "values"] = self.__to_percent(returns.mode().iat[0])
+        # summary.loc["median", "values"] = self.__to_percent(returns.median())
+        # summary.loc["mode", "values"] = self.__to_percent(returns.mode().iat[0])
         summary.loc["standard deviation", "values"] = self.__to_percent(returns.std())
+        summary.loc["kurtosis", "values"] = f"{returns.kurt():.3f}"
+        summary.loc["skew", "values"] = f"{returns.skew():.3f}"
         max = returns.max()
         min = returns.min()
         summary.loc["max", "values"] = self.__to_percent(max)
