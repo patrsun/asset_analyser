@@ -25,6 +25,7 @@ class Asset():
         """
         asset = yf.Ticker(ticker) 
         self.name = asset.info["shortName"]
+        self.interval = interval
         self.data = asset.history(period="max", interval=interval, auto_adjust=False)
         # make Dates into their own column
         self.data.reset_index(inplace=True) 
@@ -154,6 +155,53 @@ class Asset():
         summary.loc["count", "values"] = str(returns.count())
 
         return summary
+
+    def atrp(self):
+        """
+        Returns Average True Range Percentage Table
+        """
+        data = self.data[["High", "Low", "Close"]]
+        data["Previous Close"] = data["Close"].shift(1)
+
+        def atrp(row):
+            # check for NaN values
+            if row["Previous Close"] != row["Previous Close"]:
+                return None
+            else:
+                return max(row["High"] - row["Low"],
+                        abs(row["High"] - row["Previous Close"]), 
+                        abs(row["Low"]- row["Previous Close"]))/row["Close"]
+
+        data["ATRP"] = data.apply(atrp, axis=1)
+
+        match self.interval:
+            case "1d": 
+                timeframe = "Daily"
+                periods = [5, 20, 60, 250, 750, 1250, 2500, 5000, 12500]
+                horizon = ["1 Week", "1 Month", "1 Quarter", "1 Year", "3 Years", "5 Years", "10 Years", "20 Years", "50 Years"]
+
+            case "5d":
+                timeframe = "Weekly"
+                periods = [4, 12, 52, 156, 260, 520, 1040, 2600]
+                horizon = ["1 Month", "1 Quarter", "1 Year", "3 Years", "5 Years", "10 Years", "20 Years", "50 Years"]
+
+            case "1mo":
+                timeframe = "Monthly"
+                periods = [3, 12, 36, 60, 120, 240, 600]
+                horizon = ["1 Quarter", "1 Year", "3 Years", "5 Years", "10 Years", "20 Years", "50 Years"]
+
+            case "3mo":
+                timeframe = "Quarterly"
+                periods = [4, 12, 20, 40, 80, 200]
+                horizon = ["1 Year", "3 Years", "5 Years", "10 Years", "20 Years", "50 Years"]
+        
+        return pd.DataFrame({
+            "Trading Periods": [str(p) for p in periods],
+            "Horizon": horizon,
+            f"Average {timeframe} True Range %": [data["ATRP"].tail(p).mean() for p in periods]
+        })
+        
+
 
 
     @staticmethod
