@@ -3,6 +3,8 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 
+pd.options.mode.chained_assignment = None
+
 class Asset():
     """
     Asset class to represent Bond ETFs, stocks, currencies, etc.
@@ -171,7 +173,7 @@ class Asset():
                 return max(row["High"] - row["Low"],
                         abs(row["High"] - row["Previous Close"]), 
                         abs(row["Low"]- row["Previous Close"]))/row["Close"]
-
+        
         data["ATRP"] = data.apply(atrp, axis=1)
 
         match self.interval:
@@ -195,15 +197,14 @@ class Asset():
                 periods = [4, 12, 20, 40, 80, 200]
                 horizon = ["1 Year", "3 Years", "5 Years", "10 Years", "20 Years", "50 Years"]
         
-        return pd.DataFrame({
+        atrp_table = pd.DataFrame({
             "Trading Periods": [str(p) for p in periods],
             "Horizon": horizon,
-            f"Average {timeframe} True Range %": [data["ATRP"].tail(p).mean() for p in periods]
+            f"Average {timeframe} True Range %": [f"{data["ATRP"].tail(p).mean()*100:.2f}%" for p in periods]
         })
+
+        return atrp_table
         
-
-
-
     @staticmethod
     def __gen_label(bin):
         """

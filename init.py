@@ -13,7 +13,7 @@ atrp = st.Page("hist_vol/atrp.py", title="Average True Range Percentage")
 
 pg = st.navigation(
     {
-        "Historical Volatility": [daily, weekly, monthly, quarterly, atrp]
+        "Historical Volatility": [atrp, daily, weekly, monthly, quarterly]
     }
 )
 
