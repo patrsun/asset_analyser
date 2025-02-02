@@ -73,6 +73,30 @@ class AssetHistorical():
 
         return table
 
+    def variance(self, return_type):
+        returns = self.data[return_type]
+
+        mean = returns.mean()
+        std = returns.std()
+        total = returns.count()
+            
+        upper = pd.Series([mean + std, mean + 2*std, mean + 3*std])
+        lower = pd.Series([mean - std, mean - (2*std), mean - (3*std)])
+        count = pd.Series([
+                ((returns >= (mean - i * std)) & (returns <= (mean + i * std))).sum() 
+                for i in [1,2,3]
+        ])
+
+        return pd.DataFrame({
+            "Std Dev": [1,2,3],
+            "Upper Bound": upper.apply(self.__to_percent),
+            "Lower Bound": lower.apply(self.__to_percent),
+            "Count": count.astype(str),
+            "Count %": (count/total).apply(self.__to_percent),
+            "Normal Count %": ["68.27%", "95.45%", "99.73%"]
+        })
+
+
     @staticmethod
     def __gen_label(bin):
         """
