@@ -4,4 +4,4 @@ from asset_historical import AssetHistorical
 SPY = Asset("SPY")
 data = AssetHistorical(SPY, "1d")
 
-print(data.returns("C-C"))
+print(data.probablities("C-C"))

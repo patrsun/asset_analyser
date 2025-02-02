@@ -44,6 +44,34 @@ class AssetHistorical():
             "Cumulative Probability": freq_table["Probability"].cumsum().apply(self.__to_percent),
             "Count": freq_table["Count"].astype(str),
         })
+    
+    def probablities(self, return_type):
+        returns = self.data[return_type] 
+        total = returns.count()
+
+        positive_points = returns[returns > 0]
+        pos_count = positive_points.count()
+
+        negative_points = returns[returns < 0]
+        neg_count = negative_points.count()
+
+        zero_points = returns[returns == 0]
+        zero_count = zero_points.count()
+
+        avg_returns = pd.Series([positive_points.mean(), negative_points.mean(), 0])
+        counts = pd.Series([pos_count, neg_count, zero_count])
+        freq = pd.Series([pos_count/total, neg_count/total, zero_count/total])
+        
+        table = pd.DataFrame({
+            "Average Returns": avg_returns.apply(self.__to_percent),
+            "Count": counts.astype(str),
+            "Frequency %": freq.apply(self.__to_percent),
+            "Frequency Adjusted Returns": (avg_returns * freq).apply(self.__to_percent)
+        })
+        
+        table.index = ["Positive Data Points", "Negative Data Points", "Zero"]
+
+        return table
 
     @staticmethod
     def __gen_label(bin):
