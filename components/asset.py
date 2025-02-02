@@ -25,6 +25,8 @@ class Asset():
                 - 1mo = monthly
                 - 3mo = quarterly
         """
+
+        # INITIALISE ASSET OBJECT (fetch data)
         asset = yf.Ticker(ticker) 
         self.name = asset.info["shortName"]
         self.interval = interval
