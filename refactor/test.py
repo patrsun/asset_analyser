@@ -6,4 +6,4 @@ import streamlit as st
 SPY = Asset("SPY")
 data = AssetHistorical(SPY, "1d")
 
-st.write(data.variance("C-C"))
+print(data.summary("C-C"))

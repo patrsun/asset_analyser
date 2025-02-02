@@ -20,7 +20,9 @@ class AssetHistorical():
         if (not invalid_rows.empty):
             max_invalid = invalid_rows.max()
             self.data.drop(self.data.index[:max_invalid+1], inplace=True)
-
+    
+    # DISTRIBUTION OF RETURNS
+    # --------------------------
     def returns(self, return_type):
         returns = self.data[return_type]
 
@@ -96,6 +98,22 @@ class AssetHistorical():
             "Normal Count %": ["68.27%", "95.45%", "99.73%"]
         })
 
+    def summary(self, return_type):
+        returns = self.data[return_type]
+        summary = pd.DataFrame()
+
+        summary.loc["mean", "values"] = self.__to_percent(returns.mean())
+        summary.loc["standard deviation", "values"] = self.__to_percent(returns.std())
+        summary.loc["kurtosis", "values"] = f"{returns.kurt():.3f}"
+        summary.loc["skew", "values"] = f"{returns.skew():.3f}"
+        max = returns.max()
+        min = returns.min()
+        summary.loc["max", "values"] = self.__to_percent(max)
+        summary.loc["min", "values"] = self.__to_percent(min)
+        summary.loc["range", "values"] = self.__to_percent(max - min)
+        summary.loc["count", "values"] = str(returns.count())
+
+        return summary
 
     @staticmethod
     def __gen_label(bin):
