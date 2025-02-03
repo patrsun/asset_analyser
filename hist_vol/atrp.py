@@ -16,16 +16,16 @@ def render_page(ticker):
 
     with col1:
         st.subheader("Daily ATRP")
-        st.dataframe(daily.atrp(), use_container_width=True)
+        st.dataframe(daily.atrp_table(), use_container_width=True)
     with col2:
         st.subheader("Weekly ATRP")
-        st.dataframe(weekly.atrp(), use_container_width=True)
+        st.dataframe(weekly.atrp_table(), use_container_width=True)
     with col3:
         st.subheader("Monthly ATRP")
-        st.dataframe(monthly.atrp(), use_container_width=True)
+        st.dataframe(monthly.atrp_table(), use_container_width=True)
     with col4:
         st.subheader("Quarterly ATRP")
-        st.dataframe(quarterly.atrp(), use_container_width=True)
+        st.dataframe(quarterly.atrp_table(), use_container_width=True)
 
 if ticker != "":
     try:

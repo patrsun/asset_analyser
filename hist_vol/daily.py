@@ -11,10 +11,11 @@ def render_page(ticker):
     DataCard(asset).render("H-L")
     DataCard(asset).render("O-C")
 
-if ticker != "":
-    try:
-        render_page(ticker)
-    except: 
-        st.write("Invalid ticker symbol")
-else:
-    st.write("No data to display")
+# if ticker != "":
+#     try:
+#         render_page(ticker)
+#     except: 
+#         st.write("Invalid ticker symbol")
+# else:
+#     st.write("No data to display")
+render_page(ticker)

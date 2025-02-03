@@ -26,13 +26,23 @@ class Asset():
                 - 3mo = quarterly
         """
         asset = yf.Ticker(ticker) 
-        self.name = asset.info["shortName"]
+        self.name = asset.info["longName"]
         self.interval = interval
-        self.data = asset.history(period="max", interval=interval, auto_adjust=False)
-        # make Dates into their own column
-        self.data.reset_index(inplace=True) 
+
+        self.data = asset.history(
+            period="max", 
+            interval=interval, 
+            auto_adjust=False
+        ).tz_localize(None)
         
-        # calculate returns
+        self.calculate_returns()
+        self.calculate_atrp()
+        
+        # get start and end date of data
+        self.start_date = self.data.index.min()
+        self.end_date = self.data.index.max()
+
+    def calculate_returns(self):
         self.data["C-C"] = self.data["Adj Close"].pct_change()
         self.data["H-L"] = (self.data["High"] - self.data["Low"])/self.data["Low"]
         self.data["O-C"] = (self.data["Close"] - self.data["Open"])/self.data["Open"]
@@ -43,10 +53,21 @@ class Asset():
         if (not invalid_rows.empty):
             max_invalid = invalid_rows.max()
             self.data.drop(self.data.index[:max_invalid+1], inplace=True)
+
+    def calculate_atrp(self):
+        data = self.data[["High", "Low", "Close"]]
+        data["Previous Close"] = data["Close"].shift(1)
+
+        def atrp(row):
+            # check for NaN values
+            if row["Previous Close"] != row["Previous Close"]:
+                return None
+            else:
+                return max(row["High"] - row["Low"],
+                        abs(row["High"] - row["Previous Close"]), 
+                        abs(row["Low"]- row["Previous Close"]))/row["Close"]
         
-        # get start and end date of data
-        self.start_date = self.data["Date"].min()
-        self.end_date = self.data["Date"].max()
+        self.data["ATRP"] = data.apply(atrp, axis=1)
 
     def returns_table(self, return_type:Literal["C-C", "H-L", "O-C"]):
         """
@@ -65,48 +86,49 @@ class Asset():
         # generate distribution of returns table
         bins = np.arange(mean-(3*std), mean+(3*std)+0.001, 0.75*std)
         bins = np.concatenate(([-np.inf], bins, [np.inf]))
-        table = pd.cut(returns, bins=bins, include_lowest=True)
+        freq_table = pd.cut(returns, bins=bins, include_lowest=True)
 
         # count occurences 
-        table = table.value_counts().sort_index().reset_index()
+        freq_table = freq_table.value_counts().sort_index().reset_index()
 
         # formatting
-        table.columns=["Range", "Count"]
-        table["Range"] = table["Range"].apply(self.__gen_label)
-
-        # other statistics
-        table["Probability"] = table["Count"]/total
-        table["Cumulative Probability"] = table["Probability"].cumsum()
-        table["Count"] = table["Count"].astype(str)
-        table["Probability"] = table["Probability"].apply(self.__to_percent)
-        table["Cumulative Probability"] = table["Cumulative Probability"].apply(self.__to_percent)
+        freq_table.columns=["Range", "Count"]
+        freq_table["Probability"] = freq_table["Count"]/total
         
-        return table
+        return pd.DataFrame({
+            "Range": freq_table["Range"].apply(self.__gen_label),
+            "Count": freq_table["Count"].astype(str),
+            "Probability": freq_table["Probability"].apply(self.__to_percent),
+            "Cumulative Probability": freq_table["Probability"].cumsum().apply(self.__to_percent)
+        })
     
     def prob_table(self, return_type: Literal["C-C", "H-L", "O-C"]):
         returns = self.data[return_type] 
         total = returns.count()
+
         positive_points = returns[returns > 0]
         pos_count = positive_points.count()
+        
         negative_points = returns[returns < 0]
         neg_count = negative_points.count()
+
         zero_points = returns[returns == 0]
         zero_count = zero_points.count()
 
-        data = {
-            "Average Returns": [positive_points.mean(), negative_points.mean(), 0],
-            "Count": [pos_count, neg_count, zero_count],
-            "Frequency %": [pos_count/total, neg_count/total, zero_count/total],
-        }
+        avg_returns = pd.Series([positive_points.mean(), negative_points.mean(), 0])
+        counts = pd.Series([pos_count, neg_count, zero_count])
+        freqs = pd.Series([pos_count/total, neg_count/total, zero_count/total])
 
-        prob_table = pd.DataFrame(data, index=["Positive Data Points", "Negative Data Points", "Zero"])
-        prob_table["Frequency Adjusted Returns"] = prob_table["Average Returns"] * prob_table["Frequency %"]
-        prob_table["Average Returns"] = prob_table["Average Returns"].apply(self.__to_percent)
-        prob_table["Count"] = prob_table["Count"].astype(str)
-        prob_table["Frequency %"] = prob_table["Frequency %"].apply(self.__to_percent)
-        prob_table["Frequency Adjusted Returns"] = prob_table["Frequency Adjusted Returns"].apply(self.__to_percent)
+        table = pd.DataFrame({
+            "Average Returns": avg_returns.apply(self.__to_percent),
+            "Count": counts.astype(str),
+            "Frequency %": freqs.apply(self.__to_percent),
+            "Frequency Adjusted Returns": (avg_returns * freqs).apply(self.__to_percent)
+        })
 
-        return prob_table
+        table.index = ["Positive Data Points", "Negative Data Points", "Zero"]
+
+        return table
 
     def var_table(self, return_type: Literal["C-C", "H-L", "O-C"]):
         """
@@ -123,19 +145,20 @@ class Asset():
             "Lower Bound": [mean - std, mean - (2*std), mean - (3*std)]
         }
 
-        table = pd.DataFrame(data)
-        table["Count"] = table.apply(
-            lambda row: ((returns >= row["Lower Bound"]) & (returns <= row["Upper Bound"])).sum(),
-            axis=1
-        )
-        table["Count %"]= table["Count"]/total
-        table["Upper Bound"] = table["Upper Bound"].apply(self.__to_percent)
-        table["Lower Bound"] = table["Lower Bound"].apply(self.__to_percent)
-        table["Count"] = table["Count"].astype(str)
-        table["Count %"] = table["Count %"].apply(self.__to_percent)
-        table["Normal Count %"] = ["68.27%", "95.45%", "99.73%"]
-        
-        return table
+        upper = [mean + std, mean + 2*std, mean + 3*std]
+        lower = [mean - std, mean - (2*std), mean - (3*std)]
+
+        counts = pd.Series([((returns >= low) & (returns <= high)).sum() 
+            for low, high in zip(lower, upper)])
+
+        return pd.DataFrame({
+            "Std Dev": [1,2,3],
+            "Upper Bound": upper,
+            "Lower Bound": lower,
+            "Count": counts.astype(str),
+            "Count %": (counts/total).apply(self.__to_percent),
+            "Normal Count %": ["68.27%", "95.45%", "99.73%"]
+        })
 
     def summary_stats(self, return_type: Literal["C-C", "H-L", "O-C"]):
         """
@@ -144,8 +167,6 @@ class Asset():
         returns = self.data[return_type]
         summary = pd.DataFrame()
         summary.loc["mean", "values"] = self.__to_percent(returns.mean())
-        # summary.loc["median", "values"] = self.__to_percent(returns.median())
-        # summary.loc["mode", "values"] = self.__to_percent(returns.mode().iat[0])
         summary.loc["standard deviation", "values"] = self.__to_percent(returns.std())
         summary.loc["kurtosis", "values"] = f"{returns.kurt():.3f}"
         summary.loc["skew", "values"] = f"{returns.skew():.3f}"
@@ -158,7 +179,7 @@ class Asset():
 
         return summary
 
-    def atrp(self):
+    def atrp_table(self):
         """
         Returns Average True Range Percentage Table
         """
