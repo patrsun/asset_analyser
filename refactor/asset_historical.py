@@ -2,9 +2,13 @@ import pandas as pd
 import numpy as np
 from asset import Asset
 
+# remove errors about setting value with copies
+pd.options.mode.chained_assignment = None
+
 class AssetHistorical():
     def __init__(self, asset: Asset, interval):
         self.asset = asset
+        self.interval = interval
         
         self.data = asset.history(interval=interval)
         self.data.reset_index(inplace=True)
@@ -31,6 +35,20 @@ class AssetHistorical():
         std = returns.std()
         total = returns.count()
 
+        def gen_label(bin):
+            """
+            Generates labels for each interval
+            """
+            lower = bin.left
+            upper = bin.right
+
+            if lower == -np.inf: 
+                return f'Less than {(upper * 100):.1f}%'
+            if upper == np.inf:
+                return f'Greater than {(lower * 100):.1f}%'
+            
+            return f"{(lower * 100):.1f}% to {(upper * 100):.1f}%"
+
         # generate bins
         bins = np.arange(mean-(3*std), mean+(3*std)+0.001, 0.75*std)
         bins = np.concatenate(([-np.inf], bins, [np.inf]))
@@ -41,7 +59,7 @@ class AssetHistorical():
         freq_table["Probability"] = freq_table["Count"]/total
 
         return pd.DataFrame({
-            "Range": freq_table["Range"].apply(self.__gen_label),
+            "Range": freq_table["Range"].apply(gen_label),
             "Probability": freq_table["Probability"].apply(self.__to_percent),
             "Cumulative Probability": freq_table["Probability"].cumsum().apply(self.__to_percent),
             "Count": freq_table["Count"].astype(str),
@@ -115,21 +133,55 @@ class AssetHistorical():
 
         return summary
 
-    @staticmethod
-    def __gen_label(bin):
-        """
-        Generates labels for each interval
-        """
-        lower = bin.left
-        upper = bin.right
+    # ATRP
+    # -----------
+    def atrp(self):
+        data = self.data[["High", "Low", "Close"]]
+        data["Previous Close"] = data["Close"].shift(1)
 
-        if lower == -np.inf: 
-            return f'Less than {(upper * 100):.1f}%'
-        if upper == np.inf:
-            return f'Greater than {(lower * 100):.1f}%'
+        def atrp(row):
+            # check for NaN values
+            if row["Previous Close"] != row["Previous Close"]:
+                return None
+            else:
+                return max(row["High"] - row["Low"],
+                        abs(row["High"] - row["Previous Close"]), 
+                        abs(row["Low"]- row["Previous Close"]))/row["Close"]
         
-        return f"{(lower * 100):.1f}% to {(upper * 100):.1f}%"
-    
+        data["ATRP"] = data.apply(atrp, axis=1)
+
+        match self.interval:
+            case "1d": 
+                timeframe = "Daily"
+                periods = [5, 20, 60, 250, 750, 1250, 2500, 5000, 12500]
+                horizon = ["1 Week", "1 Month", "1 Quarter", "1 Year", 
+                           "3 Years", "5 Years", "10 Years", "20 Years", "50 Years"]
+
+            case "5d":
+                timeframe = "Weekly"
+                periods = [4, 12, 52, 156, 260, 520, 1040, 2600]
+                horizon = ["1 Month", "1 Quarter", "1 Year", "3 Years", "5 Years", 
+                           "10 Years", "20 Years", "50 Years"]
+
+            case "1mo":
+                timeframe = "Monthly"
+                periods = [3, 12, 36, 60, 120, 240, 600]
+                horizon = ["1 Quarter", "1 Year", "3 Years", "5 Years", "10 Years", 
+                           "20 Years", "50 Years"]
+
+            case "3mo":
+                timeframe = "Quarterly"
+                periods = [4, 12, 20, 40, 80, 200]
+                horizon = ["1 Year", "3 Years", "5 Years", "10 Years", "20 Years", 
+                           "50 Years"]
+        
+        return pd.DataFrame({
+            "Trading Periods": [str(p) for p in periods],
+            "Horizon": horizon,
+            f"Average {timeframe} True Range %": [f"{data["ATRP"].tail(p).mean()*100:.2f}%" for p in periods]
+        })
+
+
     @staticmethod
     def __to_percent(x):
         return f"{x*100:.2f}%"
