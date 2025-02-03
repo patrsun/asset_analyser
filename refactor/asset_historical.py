@@ -6,11 +6,11 @@ from asset import Asset
 pd.options.mode.chained_assignment = None
 
 class AssetHistorical():
-    def __init__(self, asset: Asset, interval):
-        self.asset = asset
+    def __init__(self, ticker, interval):
+        self.asset = Asset(ticker)
         self.interval = interval
         
-        self.data = asset.history(interval=interval)
+        self.data = self.asset.history(interval=interval)
         self.data.reset_index(inplace=True)
 
         # calculate returns
@@ -24,7 +24,10 @@ class AssetHistorical():
         if (not invalid_rows.empty):
             max_invalid = invalid_rows.max()
             self.data.drop(self.data.index[:max_invalid+1], inplace=True)
-    
+
+    def get_name(self):
+        return self.asset.info()["longName"]
+
     # DISTRIBUTION OF RETURNS
     # --------------------------
     def returns(self, return_type):
@@ -65,7 +68,7 @@ class AssetHistorical():
             "Count": freq_table["Count"].astype(str),
         })
     
-    def probablities(self, return_type):
+    def probabilities(self, return_type):
         returns = self.data[return_type] 
         total = returns.count()
 
@@ -133,8 +136,9 @@ class AssetHistorical():
 
         return summary
 
-    # ATRP
-    # -----------
+
+    # AVERAGE TRUE RANGE PERCENTAGE
+    # --------------------------------
     def atrp(self):
         data = self.data[["High", "Low", "Close"]]
         data["Previous Close"] = data["Close"].shift(1)

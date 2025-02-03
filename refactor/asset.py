@@ -10,4 +10,7 @@ class Asset():
             interval=interval,
             auto_adjust=False,
         ).tz_localize(None)
+
+    def info(self):
+        return self.__asset.info
     
