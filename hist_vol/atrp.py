@@ -12,25 +12,27 @@ def render_page(ticker):
 
     st.title(daily.name)
 
-    col1, col2, col3, col4 = st.columns(4, border=True)
+    col1, col2 = st.columns(2, border=True)
+    col3, col4 = st.columns(2, border=True)
+
+    def dataframe(df):
+        return st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True
+        )
 
     with col1:
         st.subheader("Daily ATRP")
-        st.dataframe(daily.atrp_table(), use_container_width=True)
+        dataframe(daily.atrp_table())
     with col2:
         st.subheader("Weekly ATRP")
-        st.dataframe(weekly.atrp_table(), use_container_width=True)
+        dataframe(weekly.atrp_table())
     with col3:
         st.subheader("Monthly ATRP")
-        st.dataframe(monthly.atrp_table(), use_container_width=True)
+        dataframe(monthly.atrp_table())
     with col4:
         st.subheader("Quarterly ATRP")
-        st.dataframe(quarterly.atrp_table(), use_container_width=True)
+        dataframe(quarterly.atrp_table())
 
-if ticker != "":
-    try:
-        render_page(ticker)
-    except: 
-        st.write("Invalid ticker symbol")
-else:
-    st.write("No data to display")
+render_page(ticker)
