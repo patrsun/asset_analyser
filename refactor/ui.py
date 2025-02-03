@@ -31,6 +31,10 @@ class ComponentRenderer():
                 title = "Open to Close Distribution of Returns"
                 color = '#FFD166'
 
+        start_date, end_date = self.asset.date_range()
+        start_date = start_date.strftime("%d %b %Y")
+        end_date = end_date.strftime("%d %b %Y")
+
         container = st.container(border=False)
         with container:
             returns_table = self.asset.returns(return_type)
@@ -42,7 +46,7 @@ class ComponentRenderer():
                 x=alt.X("Range:N", title="Range", sort=returns_table.index),
                 y=alt.Y("Count:Q", title="Frequency"),
             ).properties(
-                title=f"{self.asset.get_name()}",
+                title=f"{self.asset.get_name()} ({start_date} - {end_date})",
                 height=400
             ).configure_title(
                 anchor='middle'

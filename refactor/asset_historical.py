@@ -28,6 +28,9 @@ class AssetHistorical():
     def get_name(self):
         return self.asset.info()["longName"]
 
+    def date_range(self):
+        return (self.data["Date"].min(), self.data["Date"].max())
+
     # DISTRIBUTION OF RETURNS
     # --------------------------
     def returns(self, return_type):
