@@ -12,8 +12,8 @@ class DataCard():
    
     def render(self, return_type: Literal["C-C", "H-L", "O-C"]):
         asset = self.asset
-        start_date = asset.start_date.strftime("%b %Y")
-        end_date = asset.end_date.strftime("%b %Y")
+        start_date = asset.start_date.strftime("%d %b %Y")
+        end_date = asset.end_date.strftime("%d %b %Y")
 
         title = ""
         match return_type:
@@ -51,7 +51,7 @@ class DataCard():
 
             col1, col2 = st.columns(2, border=True)
             with col1:
-                st.dataframe(returns_table, use_container_width=True)
+                st.dataframe(returns_table, use_container_width=True, hide_index=True)
                 st.dataframe(summary_table, use_container_width=True)
 
             with col2:
